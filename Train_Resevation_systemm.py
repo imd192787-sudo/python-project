@@ -12,9 +12,8 @@ from typing import Optional, List
 
 DB_FILE = "train_reservation.db"
 
-# -------------------------
-# DSA: Simple Linked List (Demonstration)
-# -------------------------
+# DSA Simple Linked List 
+
 class LinkedListNode:
     def __init__(self, data):
         self.data = data
@@ -59,9 +58,8 @@ class LinkedList:
             cur = cur.next
         return res
 
-# -------------------------
 # Utils
-# -------------------------
+
 def ensure_db():
     first_time = not os.path.exists(DB_FILE)
     conn = sqlite3.connect(DB_FILE)
