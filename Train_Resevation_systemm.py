@@ -123,7 +123,7 @@ def ensure_db():
     conn.close()
 
 def generate_pnr():
-    # PNR: 10-character unique alphanumeric based on timestamp + random
+    # PNR: 10-character unique alphanumeric
     ts = datetime.datetime.now().strftime("%y%m%d%H%M%S")
     rand = ''.join(random.choices(string.ascii_uppercase + string.digits, k=3))
     return f"{ts}{rand}"
@@ -131,9 +131,9 @@ def generate_pnr():
 def get_connection():
     return sqlite3.connect(DB_FILE)
 
-# -------------------------
-# DSA: Binary search over trains by train_no
-# -------------------------
+
+# Binary search over trains by train_no
+
 def fetch_all_trains_sorted():
     conn = get_connection()
     c = conn.cursor()
@@ -159,14 +159,14 @@ def binary_search_trains(trains_list, target_no) -> Optional[dict]:
             hi = mid - 1
     return None
 
-# -------------------------
-# Booking System Core
-# -------------------------
+
+# Booking System 
+
 class TrainReservationSystem:
     def __init__(self):
         ensure_db()
-        self.waiting_queues = {}  # in-memory cache: train_no -> deque of PNRs (to show DSA queue)
-        self.train_passenger_lists = {}  # train_no -> LinkedList of passenger names (DSA demo)
+        self.waiting_queues = {}  
+        self.train_passenger_lists = {}  
         self.load_waiting_queues_from_db()
 
     def load_waiting_queues_from_db(self):
@@ -200,14 +200,14 @@ class TrainReservationSystem:
         conn.close()
         if row:
             print(f"Welcome {row[1]}!")
-            return row[0]  # user_id
+            return row[0]  
         else:
             print("Invalid credentials.")
             return None
 
     # Admin functions
     def admin_login(self, username, password):
-        # For demo, hard-coded admin
+        
         if username == 'admin' and password == 'admin123':
             print("Admin login successful.")
             return True
@@ -227,7 +227,7 @@ class TrainReservationSystem:
             conn.close()
 
     def update_train(self, train_no, **kwargs):
-        # kwargs: name, source, destination, total_seats, fare
+        
         conn = get_connection()
         c = conn.cursor()
         # fetch existing
@@ -245,7 +245,7 @@ class TrainReservationSystem:
                 fields.append(f"{k}=?")
                 values.append(v)
         if 'total_seats' in kwargs:
-            # adjust available seats proportionally (simple logic)
+            
             new_total = kwargs['total_seats']
             used = total - avail
             new_avail = max(0, new_total - used)
@@ -270,7 +270,7 @@ class TrainReservationSystem:
         conn.close()
         print("Train removed (if existed).")
 
-    # Search trains (supports binary search by sorted train_no)
+    # Search trains
     def search_trains(self, train_no=None, source=None, destination=None):
         trains = fetch_all_trains_sorted()
         results = []
@@ -307,12 +307,12 @@ class TrainReservationSystem:
         pnr = generate_pnr()
         booking_time = datetime.datetime.now().isoformat()
         if avail > 0:
-            # Confirmed booking
+            
             c.execute('INSERT INTO bookings VALUES (?,?,?,?,?,?,?,?)',
                     (pnr, user_id, train_no, passenger_name, age, gender, 'CONFIRMED', booking_time))
-            # reduce seat
+           
             c.execute('UPDATE trains SET available_seats=available_seats-1 WHERE train_no=?', (train_no,))
-            # add passenger to linked list DSA demo
+            
             self.add_passenger_to_train_list(train_no, passenger_name)
             conn.commit()
             conn.close()
@@ -325,7 +325,7 @@ class TrainReservationSystem:
             c.execute('INSERT INTO waiting_list (train_no, pnr, time_added) VALUES (?,?,?)', (train_no, pnr, booking_time))
             conn.commit()
             conn.close()
-            # update in-memory queue
+           
             if train_no not in self.waiting_queues:
                 self.waiting_queues[train_no] = deque()
             self.waiting_queues[train_no].append(pnr)
